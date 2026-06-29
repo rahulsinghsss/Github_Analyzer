@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+try { require('dotenv').config({ path: path.join(__dirname, '../../.env') }); } catch (_) {}
+
 const dualStorageEnabled = process.env.DUAL_STORAGE === 'true';
 const useAiven = Boolean(process.env.DATABASE_URL) && process.env.DATABASE_URL.includes('postgres');
 const dialect = dualStorageEnabled ? 'mysql' : (useAiven ? 'postgres' : 'mysql');
@@ -9,7 +11,8 @@ let basePool;
 let aivenPool;
 let usingFallback = false;
 
-const dataDir = path.join(__dirname, '../data');
+const isVercel = Boolean(process.env.VERCEL || process.env.NOW_REGION);
+const dataDir = isVercel ? '/tmp' : path.join(__dirname, '../data');
 const fallbackFile = path.join(dataDir, 'profiles.json');
 
 function ensureFallbackStore() {
@@ -168,6 +171,7 @@ function createPoolWrapper(targetPool) {
         }
         return await targetPool.query(text, params);
       } catch (error) {
+        console.error('DB query failed, falling back to JSON storage:', error.message);
         usingFallback = true;
         return normalizeFallbackResult(text, params);
       }

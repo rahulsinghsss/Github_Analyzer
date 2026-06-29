@@ -15,7 +15,11 @@ module.exports = async (req, res) => {
       return res.status(200).json({ profiles });
     } catch (error) {
       console.error('Vercel fetch all profiles error:', error);
-      return res.status(500).json({ error: 'Failed to fetch stored profiles.' });
+      return res.status(500).json({
+        error: 'Failed to fetch stored profiles.',
+        details: error.message,
+        stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+      });
     }
   }
 

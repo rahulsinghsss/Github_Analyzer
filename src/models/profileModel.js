@@ -106,15 +106,20 @@ async function insertOrUpdateProfile(profile) {
     profile.avatar_url,
     profile.popularity_score,
     profile.analysis_date,
-    profile.raw_data
+    typeof profile.raw_data === 'object' ? JSON.stringify(profile.raw_data) : profile.raw_data
   ];
 
-  // Store to local MySQL
+  const pgValues = [
+    ...values.slice(0, 18),
+    profile.raw_data // Postgres JSONB handles objects natively
+  ];
+
+  // Store to local MySQL / primary pool
   const result = await pool.query(mysqlQuery, values);
 
   // If dual storage is enabled, also store to Aiven PostgreSQL
   if (dualStorageEnabled && aivenPool) {
-    aivenPool.query(postgresQuery, values).catch(() => {});
+    aivenPool.query(postgresQuery, pgValues).catch(() => {});
   }
 
   return result;
