@@ -274,7 +274,15 @@
             body: JSON.stringify({ username })
           });
 
-          const data = await response.json();
+          const contentType = (response.headers.get('content-type') || '').toLowerCase();
+          let data;
+          if (contentType.includes('application/json')) {
+            data = await response.json();
+          } else {
+            const text = await response.text();
+            throw new Error(text || 'Unexpected response from server');
+          }
+
           if (!response.ok) {
             throw new Error(data.error || 'Request failed');
           }
@@ -283,7 +291,7 @@
           result.innerHTML = renderProfileCard(profile);
           status.textContent = `Profile analyzed and saved for ${profile.username}.`;
         } catch (error) {
-          status.textContent = error.message;
+          status.textContent = error.message || 'Failed to fetch profile.';
         }
       }
 
@@ -296,7 +304,15 @@
 
         try {
           const response = await fetch(`${apiBase}/profiles`);
-          const data = await response.json();
+          const contentType = (response.headers.get('content-type') || '').toLowerCase();
+          let data;
+          if (contentType.includes('application/json')) {
+            data = await response.json();
+          } else {
+            const text = await response.text();
+            throw new Error(text || 'Failed to load profiles');
+          }
+
           if (!response.ok) {
             throw new Error(data.error || 'Failed to load profiles');
           }
