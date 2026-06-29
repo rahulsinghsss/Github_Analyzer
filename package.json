@@ -1,0 +1,29 @@
+{
+  "name": "github-profile-analyzer-api",
+  "version": "1.0.0",
+  "description": "A backend API that analyzes GitHub user profiles and stores insights in PostgreSQL.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [
+    "github",
+    "api",
+    "express",
+    "postgresql",
+    "backend"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "pg": "^8.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

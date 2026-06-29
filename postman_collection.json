@@ -1,0 +1,74 @@
+{
+  "info": {
+    "name": "GitHub Profile Analyzer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Analyze Profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"octocat\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/profiles/analyze",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "profiles",
+            "analyze"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Profiles",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/api/profiles",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "profiles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Profile By Username",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/api/profiles/octocat",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "profiles",
+            "octocat"
+          ]
+        }
+      }
+    }
+  ]
+}
