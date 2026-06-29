@@ -268,11 +268,21 @@
         result.innerHTML = '';
 
         try {
-          const response = await fetch(`${apiBase}/profiles/analyze`, {
+          // Primary endpoint used by local server
+          let response = await fetch(`${apiBase}/profiles/analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
           });
+
+          // If Vercel returns 404 for this path, try the POST /api/profiles fallback
+          if (response.status === 404) {
+            response = await fetch(`${apiBase}/profiles`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username })
+            });
+          }
 
           const contentType = (response.headers.get('content-type') || '').toLowerCase();
           let data;
