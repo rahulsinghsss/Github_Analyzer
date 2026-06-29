@@ -1,69 +1,65 @@
-# GitHub Profile Analyzer API
+# GitHub Profile Analyzer API 🚀
 
-A backend service that analyzes GitHub user profiles, stores insights in a local SQL database for development, and supports Aiven PostgreSQL in production with Vercel deployment.
+A robust backend service designed to analyze GitHub user profiles, calculate popularity metrics, and persist insights. Built with a flexible architecture that supports both local development and serverless cloud deployment.
 
-## Features
+## 🎯 Project Overview
 
-- Analyze GitHub profiles using the public GitHub API
-- Store useful profile insights in PostgreSQL
-- Retrieve all stored analyses
-- Retrieve a single stored profile by username
-- Shared service layer supports Express and Vercel API routes
+This project was built to demonstrate a full-stack backend capable of gracefully handling different environments. It fetches data from the public GitHub API, processes it to generate custom insights (like a `popularity_score`), and stores the historical data for future querying.
 
-## Tech Stack
+### Key Features
+- **Profile Analysis**: Fetches and aggregates GitHub user metrics.
+- **Dual-Environment Architecture**: Runs as a standard Express.js app locally and as Serverless Functions on Vercel in production.
+- **Resilient Data Storage**: Uses a dynamic database connection wrapper that switches between local MySQL, cloud PostgreSQL (Aiven), and an ephemeral JSON fallback.
+- **Ready-to-Test**: Includes a fully configured Postman Collection with dynamic variables for seamless testing.
 
-- Node.js
-- Express.js
-- MySQL (local development)
-- PostgreSQL (Aiven / production)
-- GitHub API
-- Axios
-- Vercel serverless functions
+---
 
-## Setup Instructions
+## 🏗️ Architecture & Design Decisions
 
-1. Clone the repository
+### 1. The Dual Storage Engine
+To provide a smooth developer experience without sacrificing production reliability, the data layer (`src/config/db.js`) uses a smart wrapper:
+- **Local Development**: Defaults to **MySQL**. It dynamically creates connection pools and handles schema initialization at startup.
+- **Production (Vercel)**: Automatically detects the Vercel environment and `DATABASE_URL`, switching the dialect to **PostgreSQL** to connect to an Aiven-hosted database.
+- **In-Memory / JSON Fallback**: If a database connection fails or tables are missing, the query wrapper safely intercepts the failure and falls back to a local JSON file store (using `/tmp` on Vercel to bypass read-only filesystem restrictions).
 
+### 2. Serverless vs. Long-Running Server
+The project maintains an `app.js` file for traditional Express server routing (great for local testing via `npm run dev`). 
+However, for deployment, it uses Vercel's `api/` directory structure. The business logic (`src/services` and `src/models`) is decoupled from the transport layer, allowing the exact same code to be executed by Vercel Serverless Functions and Express routes simultaneously.
+
+### 3. Smart Error Handling
+When deployed to serverless environments, debugging database timeouts or missing schemas can be difficult. The API is designed to return detailed stack traces in non-production environments and graceful fallback data when the primary database is unreachable.
+
+---
+
+## 🚀 Live Demo & Testing
+
+- **Live UI & API**: [https://github-analyzer-beta-beryl.vercel.app](https://github-analyzer-beta-beryl.vercel.app)
+- **Postman Collection**: A fully configured Postman collection is hosted live at [https://github-analyzer-beta-beryl.vercel.app/postman_collection.json](https://github-analyzer-beta-beryl.vercel.app/postman_collection.json). 
+  - *To test: Open Postman → Click Import → Link → Paste the URL above.* It includes a `{{baseUrl}}` variable to easily switch between `localhost:3000` and the Vercel deployment.
+
+---
+
+## 💻 Tech Stack
+
+- **Runtime**: Node.js
+- **Framework**: Express.js (Local) / Vercel Serverless Functions (Prod)
+- **Databases**: MySQL (Local), PostgreSQL via Aiven (Prod)
+- **HTTP Client**: Axios (for GitHub API requests)
+- **Database Drivers**: `mysql2`, `pg`
+
+---
+
+## 🛠️ Setup Instructions (Local Development)
+
+### 1. Clone & Install
 ```bash
 git clone <repo-url>
 cd Assigment
-```
-
-2. Install dependencies
-
-```bash
 npm install
 ```
 
-3. Start your local SQL server
-
-For local development, the project uses MySQL by default.
-
-```bash
-brew services start mysql
-# or use your preferred MySQL service manager
-```
-
-4. Create the database
-
-Create the local database before running the app:
-
-```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS github_profile_analyzer;"
-```
-
-The application automatically creates the `profiles` table at startup.
-
-If you prefer to create the table manually for local MySQL, you can run:
-
-```bash
-mysql -u root -p github_profile_analyzer < schema.sql
-```
-
-5. Configure environment variables
-
-Create a `.env` file in the project root from `.env.example`:
-
+### 2. Configure Environment
+Create a `.env` file in the root directory:
 ```env
 PORT=3000
 DB_HOST=localhost
@@ -71,98 +67,38 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=github_profile_analyzer
+# Leave blank for local MySQL, or add Aiven connection string for Postgres
 DATABASE_URL=
-DB_SSL=false
 ```
 
-If you use a hosted provider like Aiven, set `DATABASE_URL` to the full connection string and leave the other database fields blank.
+### 3. Database Initialization
+Ensure your local MySQL server is running. The application will **automatically create the necessary `profiles` table** when you start the server.
+```bash
+brew services start mysql
+```
 
-6. Start the Express API locally
-
+### 4. Start the Server
 ```bash
 npm run dev
 ```
-
 The local server will run at `http://localhost:3000`.
 
-## Local API Endpoints
+---
 
-- `POST /api/profiles/analyze`
-  - Body: `{ "username": "github_username" }`
-- `GET /api/profiles`
-- `GET /api/profiles/:username`
+## 🌐 API Endpoints
 
-## Vercel Deployment
+The endpoints are identical across both local and production environments:
 
-The repository includes serverless routes under `api/` and a `vercel.json` deployment configuration.
+| Method | Endpoint | Description | Body / Params |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/profiles` | Fetches GitHub data, analyzes it, and stores the profile. | `{ "username": "torvalds" }` |
+| `GET`  | `/api/profiles` | Returns all historically analyzed profiles, sorted by date. | *None* |
+| `GET`  | `/api/profiles/:username` | Retrieves a specific profile from the database. | URL Param: `username` |
 
-### Required environment variables on Vercel
+---
 
-- `DATABASE_URL`
+## 🧠 Challenges Overcome During Development
 
-For Aiven Postgres, use a connection string like:
-
-```env
-DATABASE_URL=postgres://avnadmin:YOUR_PASSWORD@pg-20c7c710-lpu-5ad9.l.aivencloud.com:27070/defaultdb?sslmode=require
-```
-
-### Recommended hosted PostgreSQL providers
-
-- Aiven
-- Railway
-- ElephantSQL
-- Amazon RDS
-
-> Use a remote PostgreSQL database for Vercel deployment. Local `localhost` is not accessible from Vercel.
-
-### Deploying to Vercel
-
-1. Push your repo to GitHub
-2. Import the repository into the Vercel dashboard
-3. Add the required environment variables in Vercel
-4. Deploy
-
-Your live API URL will be `https://<your-app>.vercel.app`
-
-## Vercel API Endpoints
-
-- `POST /api/profiles/analyze`
-  - Body: `{ "username": "github_username" }`
-- `GET /api/profiles`
-- `GET /api/profiles/:username`
-
-## Example Requests
-
-### Analyze a profile locally
-
-```bash
-curl -X POST http://localhost:3000/api/profiles/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"username":"octocat"}'
-```
-
-### Analyze a profile on Vercel
-
-```bash
-curl -X POST https://<your-app>.vercel.app/api/profiles/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"username":"octocat"}'
-```
-
-### Fetch all analyzed profiles
-
-```bash
-curl http://localhost:3000/api/profiles
-```
-
-### Fetch a single profile
-
-```bash
-curl http://localhost:3000/api/profiles/octocat
-```
-
-## Notes
-
-- This service uses the GitHub public API and is subject to rate limits.
-- The shared service layer enables reuse across local Express and Vercel serverless functions.
-- For production, use a remote PostgreSQL host and configure `DATABASE_URL` in Vercel.
+1. **Vercel Read-Only Filesystem**: The initial database fallback mechanism attempted to write to `src/data/profiles.json`. On Vercel, serverless functions execute in a read-only environment, causing 500 errors. This was resolved by detecting the Vercel environment (`process.env.VERCEL`) and dynamically routing fallback writes to the `/tmp` directory.
+2. **Schema Synchronization**: Because Vercel does not run the `app.js` entry point, the automatic table creation logic (`initializeDb`) isn't triggered on deployment. To fix this, the Aiven database schema was initialized separately using a direct script execution against the production URL.
+3. **Cross-Dialect Querying**: MySQL and PostgreSQL handle JSON inserts differently (Strings vs. JSONB). The `profileModel` was enhanced to conditionally serialize `raw_data` based on the active SQL dialect, ensuring data integrity across both databases.
