@@ -17,7 +17,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"torvalds\"\n}"
+          "raw": "{\n  \"username\": \"rahulsinghsss\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/profiles/analyze",
@@ -53,14 +53,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{baseUrl}}/api/profiles/torvalds",
+          "raw": "{{baseUrl}}/api/profiles/rahulsinghsss",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
             "profiles",
-            "torvalds"
+            "rahulsinghsss"
           ]
         }
       }
